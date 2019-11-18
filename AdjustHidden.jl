@@ -6,7 +6,7 @@
 function adjust_hidden(nn_model, training_set_in, training_set_out, learning_rate_hid_in,
   w_cand_concr, w_0_cand_concr, w_hh_cand_concr)
 
-  const eps = 1 # patience for adjusting input weights of the candidate
+  eps = 1 # patience for adjusting input weights of the candidate
   err_prev = 0.0
   err = Inf # incremental error (correlation) for the candidate hidden unit
 
@@ -54,7 +54,7 @@ function adjust_hidden(nn_model, training_set_in, training_set_out, learning_rat
 
     # TODO Check for errors & delete
     # In case of gradient ascent, correlation decreases, but should increase
-    if (mod(iter, 10) == 0)
+    if (mod(iter, 20) == 0)
       print("Iter: ", iter, " Error (corr?): ", err, "\n")
     end
 
@@ -69,6 +69,7 @@ function adjust_hidden(nn_model, training_set_in, training_set_out, learning_rat
     for i=1:size(training_set_in,1)
       d_w_0_cand_concr += sign_corr(z_avg, e_avg) * ((training_set_out[i] - y_pattern[i]) - e_avg) * activation_der(summ[i]) * 1 * learning_rate_hid_in
     end
+    
     w_0_cand_concr += d_w_0_cand_concr
 
     # Input-hidden weights of NHN

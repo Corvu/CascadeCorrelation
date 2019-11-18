@@ -48,7 +48,9 @@ function delta( nn_model,
       # Input-output weights
       d_w_io = learning_rate_out * (training_set_out[i] - y) * activation_der(sum_y) .* training_set_in[i,:]
       # Hidden-output weights
-      d_v = learning_rate_out * (training_set_out[i] - y) * activation_der(sum_y) .* z[:]
+      if length(z) > 0
+        d_v = learning_rate_out * (training_set_out[i] - y) * activation_der(sum_y) .* z[:]
+      end
 
       # Update weights (SGD)
       nn_model.v_0 += d_v_0
@@ -61,7 +63,7 @@ function delta( nn_model,
     end
 
     # Show current error
-    (mod(iter, 20) == 0) ? (print("Iter:", iter, "; Error:", err, "\n")) : nothing
+    (mod(iter, 100) == 0) ? (print("Iter:", iter, "; Error:", err, "\n")) : nothing
 
     # Check precision and break if needed
     (abs(err - err_prev) < eps_delta) ? break : nothing

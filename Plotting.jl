@@ -2,25 +2,19 @@
 
 function plot_decision_boundary(nn_model, err_arr)
 
-  x_plot = 0:0.1:10
-  y_plot = 0:0.1:10
+  pygui(true)
+  
+  x_plot = range(0.0, stop=10.0, step=0.1)
+  y_plot = range(0.0, stop=10.0, step=0.1)
 
-  hidden(x,y) = begin
-    feedforward([x,y], nn_model)[2][1]
-  end
-  xgrid = repmat(x_plot',length(y_plot),1)
-  ygrid = repmat(y_plot,1,length(x_plot))
-  z = map(hidden, xgrid, ygrid)
+  hidden(x,y) .= feedforward([x,y], nn_model)[2][1]
 
   fig = figure("surf_plot")
+  plot(x,y,hidden)
   #ax = fig[:add_subplot](2,1,1)
   #subplot(211)
   #ax[:plot_surface](xgrid, ygrid, z)
-  surf(xgrid, ygrid, z)
-  xlabel("X")
-  ylabel("Y")
-  title("Surface Plot")
-  show()
+  
   #display(fig)
 
   #subplot(212)

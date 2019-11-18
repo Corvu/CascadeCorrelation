@@ -34,12 +34,20 @@ function cascade_correlation( training_set_in::Array{Float64,2},
   n_examples = size(training_set_in, 1)
 
   # Initialize empty model with random weights
-  nn_model = NN_model(n_input, 0, rand(1, n_input) * 0.1, Float64(0), 0.0, 0.0, 0.0, rand() * 0.1)
+  nn_model = NN_model(n_input,
+                      0,
+                      rand(1, n_input) * 0.1,
+                      zeros(n_input,0), # W_ih
+                      0.0,  # w_h_0
+                      zeros(0,0),  # W_hh
+                      zeros(0,1),  # W_ho
+                      rand() * 0.1) # y_0
 
   # Loss history
   err_arr = 0.0
 
   # Adjust input-output weights by Delta Rule as much as possible
+  print("start n_hid: ", nn_model.n_hidden)
   (nn_model, err_init) =
     delta(nn_model, training_set_in, training_set_out, learning_rate_out, eps_delta, max_iter_delta)
   print("\nHidden units: 0", "\tError:", err_init, "\n")

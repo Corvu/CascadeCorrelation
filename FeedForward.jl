@@ -25,7 +25,11 @@ function feedforward(x::Array{Float64,1}, nn_model)
 
   # --- CALCULATING Y - OUTPUT OF THE NETWORK ---
   # Weighted sum of inputs for the output unit and activation applied to it
-  sum_y = nn_model.v_0 + sum(nn_model.w_io * x) + sum(nn_model.v .* z)
+  if (length(nn_model.v) > 0)
+    sum_y = nn_model.v_0 + sum(nn_model.w_io * x) + sum(nn_model.v .* z)
+  else
+    sum_y = nn_model.v_0 + sum(nn_model.w_io * x)
+  end
   y = activation(sum_y)
 
   return (z, y, sum_h, sum_y)

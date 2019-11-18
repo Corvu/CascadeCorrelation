@@ -1,7 +1,8 @@
 # Cascade Correlation
 
 using CSV
-using PyPlot
+using Plots
+using Random
 
 # Hyperparameters
 const learning_rate_hid_in = 0.01 # learning rate for input-hidden weights (when adding hidden unit)
@@ -10,7 +11,7 @@ const eps_delta = 0.0001 # precision for (re)training input-output and hidden-ou
 const eps_cascade = 0.001  # precision for adding hidden units (if after adding hidden unit error decrease is less then eps_cascade, stop adding)
 const max_iter_delta = 300 # max iterations for -output retraining
 const max_iter_cand = 200 # max iterations for candidate unit training (input-hidden_candidate)
-const n_candidates = 15 # how many candidate units will be initialized on adding each hidden neuron
+const n_candidates = 5 # how many candidate units will be initialized on adding each hidden neuron
 const max_hidden = 5 # maximum amount of hidden units
 
 # File with CSV data
