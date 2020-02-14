@@ -5,21 +5,22 @@ using Plots
 using Random
 
 # Hyperparameters
-const learning_rate_hid_in = 0.01 # learning rate for input-hidden weights (when adding hidden unit)
-const learning_rate_out = 0.01 # learning rate for hidden-output and input-output weights (for delta rule retraining)
-const eps_delta = 0.0001 # precision for (re)training input-output and hidden-ouput weights
-const eps_cascade = 0.001  # precision for adding hidden units (if after adding hidden unit error decrease is less then eps_cascade, stop adding)
-const max_iter_delta = 300 # max iterations for -output retraining
-const max_iter_cand = 200 # max iterations for candidate unit training (input-hidden_candidate)
-const n_candidates = 5 # how many candidate units will be initialized on adding each hidden neuron
-const max_hidden = 5 # maximum amount of hidden units
+learning_rate_hid_in = 0.01 # learning rate for input-hidden weights (when adding hidden unit)
+learning_rate_out = 0.01 # learning rate for hidden-output and input-output weights (for delta rule retraining)
+eps_delta = 0.001 # precision for (re)training input-output and hidden-ouput weights
+eps_cascade = 0.001  # precision for adding hidden units (if after adding hidden unit error decrease is less then eps_cascade, stop adding)
+max_iter_delta = 500 # max iterations for -output retraining
+max_iter_cand = 500 # max iterations for candidate unit training (input-hidden_candidate)
+n_candidates = 10 # how many candidate units will be initialized on adding each hidden neuron
+max_hidden = 10 # maximum amount of hidden units
 
-# File with CSV data
-#filename_data = "data/data.csv"
-
-# Activation functions for all units (hidden and output)
+# Activation functions for hidden and output units
 activation(x) = tanh.(x)
 activation_der(x) = sech.(x).^2
+#activation_out(x) = tanh.(x)
+#activation_out_der(x) = sech.(x).^2
+activation_out(x) = x
+activation_out_der(x) = 1.0
 
 include("CascadeCorrelation.jl")
 include("Plotting.jl")
@@ -28,28 +29,42 @@ include("GenData.jl")
 
 # Define a network model
 mutable struct NN_model
-  n_input     # input units
-  n_hidden    # hidden units
-  w_io    # input-output weights
-  w       # input-hidden weights
-  w_0     # hidden bias
-  w_hh    # hidden-hidden weights
-  v       # hidden-output weights
-  v_0     # output bias
+  n_input :: Int     # input units
+  n_hidden :: Int    # hidden units
+  w_io :: Array{Float64, 2}   # input-output weights
+  w :: Array{Float64, 2}      # input-hidden weights
+  w_0 :: Vector{Float64}    # hidden bias
+  w_hh :: Array{Float64, 2}   # hidden-hidden weights
+  v :: Vector{Float64}     # hidden-output weights
+  v_0 :: Real    # output bias
 end
+
+Base.copy(model :: NN_model) = NN_model(
+  model.n_input,
+  model.n_hidden,
+  model.w_io,
+  model.w,
+  model.w_0,
+  model.w_hh,
+  model.v,
+  model.v_0
+)
 
 # Read data from file
 #(training_set_in, training_set_out) = read_data(filename_data)
-(training_set_in, training_set_out) = gen_data(50, "linear")
-plot_data(training_set_in, training_set_out)
-# Amount of input units
-n_input = size(training_set_in, 2)
-n_examples = size(training_set_out, 1)
-
+#(training_set_in, training_set_out) = gen_data(100, "linear_bin")
+#(training_set_in, training_set_out) = gen_data(300, "circular_bin")
+#(training_set_in, training_set_out) = gen_data(300, "quintic_bin")
+#(training_set_in, training_set_out) = gen_data(400, "sin_bin")
+(training_set_in, training_set_out) = gen_data(500, "spiral_bin")
+#(training_set_in, training_set_out) = gen_data(500, "cubic3d")
 
 # Train the model using CC
 nn_model, err_arr =
   @time cascade_correlation(training_set_in, training_set_out, learning_rate_hid_in, learning_rate_out, eps_delta, max_iter_delta)
 
+#plot_data(training_set_in, training_set_out)
 # Preparing mesh and plotting it
-fig = plot_decision_boundary(nn_model, err_arr)
+fig1 = plot_decision_boundary(nn_model, err_arr, training_set_in, training_set_out)
+#fig1 = plot_graph(nn_model, err_arr, training_set_in, training_set_out)
+fig2 = plot_loss(err_arr)
