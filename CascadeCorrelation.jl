@@ -285,22 +285,25 @@ function cascade_correlation(   training_set_in::Array{Float64,2},
                                 max_iter_delta::Int64,
                                 max_iter_cand::Int64,
                                 n_candidates::Int64,
-                                target_hidden::Int64)
+                                target_hidden::Int64,
+                                nn_model)
 
     # Parameters and variables
     n_input = size(training_set_in, 2)
     n_examples = size(training_set_in, 1)
 
-    # Initialize empty model with random weights and no hidden units
-    nn_model = NN_model(n_input,                    # n_input
-                        0,                          # n_hidden
-                        rand(1, n_input) * 10 .- 5,  # w_io
-                        zeros(n_input, 0),          # W_ih
-                        zeros(0),                   # w_h_0
-                        zeros(0,0),                 # W_hh
-                        zeros(0),                   # W_ho
-                        rand() * 10 - 5)             # v_0
-
+    # If model is empty, initialize new one with random weights (in-out, out_bias) and no hidden units
+    if (nn_model === nothing)
+        nn_model = NN_model(n_input,                    # n_input
+                            0,                          # n_hidden
+                            rand(1, n_input) * 10 .- 5, # w_io
+                            zeros(n_input, 0),          # W_ih
+                            zeros(0),                   # w_h_0
+                            zeros(0,0),                 # W_hh
+                            zeros(0),                   # W_ho
+                            rand() * 10 - 5)            # v_0
+    end
+    
     # Loss history
     err_arr = 0.0
 
@@ -323,19 +326,21 @@ function cascade_correlation(   training_set_in::Array{Float64,2},
 
     # --- ADDING HIDDEN UNITS ---
 
-    # Weights and biases (input-hidden) (hidden-hidden)
-    nn_model.w = rand(0, n_input)
-    nn_model.w_0 = rand(0)
-    nn_model.w_hh = zeros(1,1)
-    nn_model.v = rand(1)
+    # If model is empty, initialize Weights and biases for everything related to hidden units (in-hid, hid_bias, hid-hid, hid-out)
+    if (nn_model === nothing)
+        nn_model.w = rand(0, n_input)
+        nn_model.w_0 = rand(0)
+        nn_model.w_hh = zeros(1,1)
+        nn_model.v = rand(1)
+    end
 
     # Remember to keep history of prediction error for every amount of hidden units
     err_prev = 0.0
     err = Inf
-    err_arr = zeros(target_hidden)
+    err_arr = zeros(target_hidden-nn_model.n_hidden)
 
     # Adding hidden units until precision is satisfied or until target number of units was reached
-    for iteration = 1:target_hidden
+    for iteration = 1:target_hidden-nn_model.n_hidden
 
         # Incremental squared error (to decide if we need another hidden unit)
         err_prev = err

@@ -12,7 +12,7 @@ eps_cand = 0.5              # precision for adding hidden units (if after adding
 max_iter_delta = 500        # max iterations for -output retraining
 max_iter_cand = 500         # max iterations for candidate unit training (input-hidden_candidate)
 n_candidates = 10           # how many candidate units will be initialized on adding each hidden neuron
-target_hidden = 10          # target (maximum) amount of hidden units
+target_hidden = 3          # target (maximum) amount of hidden units
 
 # Activation functions for hidden and output units; activations for outputs are linear since we need to approximate function in real numbers
 activation(x) = tanh.(x)
@@ -59,8 +59,12 @@ Base.copy(model :: NN_model) = NN_model(
 #(training_set_in, training_set_out) = gen_data(500, "cubic3d")
 (training_set_in, training_set_out) = gen_data(100, "parabola")
 
+# Initialize dummy model
+nn_model = nothing
+err_arr = []
+
 # Train Cascade Correlation Network
-nn_model, err_arr =
+nn_model, err_curr =
     @time cascade_correlation(  training_set_in,
                                 training_set_out,
                                 learning_rate_hid_in,
@@ -70,8 +74,19 @@ nn_model, err_arr =
                                 max_iter_delta,
                                 max_iter_cand,
                                 n_candidates,
-                                target_hidden
+                                target_hidden,
+                                nn_model
     )
+
+# Update error history;
+# following condition allows us to include error after applying delta-rule without any hidden units;
+# NB! if you retrain the network without increasing target amount of hidden units, i.e. using only delta rule, returned error will be added to the array
+if (length(err_arr) > 0 && length(err_curr) > 1)
+    err_hid = err_curr[2:end]       # first element is error after adjusting using delta rule, second and after - errors after adding new hidden units
+    err_arr = [err_arr; err_hid]
+else
+    err_arr = [err_arr; err_curr]
+end
 
 # Plot the results
 #fig1 = plot_decision_boundary(nn_model, err_arr, training_set_in, training_set_out)
